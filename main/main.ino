@@ -42,7 +42,7 @@ void loop() {
   Serial.println(Serial.available());
   if (Serial.available()) {
     Serial.println("GPS ");
-    //mySerial.println(PMTK_SET_NMEA_OUTPUT_ALLDATA);
+    mySerial.println(PMTK_SET_NMEA_OUTPUT_ALLDATA);
   }
   if (! bme.performReading()) {
     Serial.println("Failed to perform reading :(");
