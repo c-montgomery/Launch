@@ -100,11 +100,11 @@ void setup() {
   const uint8_t BASE_NAME_SIZE = sizeof(FILE_BASE_NAME) - 1;
   char fileName[13] = FILE_BASE_NAME "00.csv";
   //  // Open serial communications and wait for port to open:
-  Serial.begin(9600);
-  altSerial.begin(9600);
+  Serial.begin(115200);
+  altSerial.begin(115200);
   delay(1000);
 
-
+  //sd HALT ERROR
   if (!sd.begin(chipSelect, SD_SCK_MHZ(50))) {
     sd.initErrorHalt();
   }
@@ -126,8 +126,17 @@ void setup() {
   if (!file.open(fileName, O_WRONLY | O_CREAT | O_EXCL)) {
     error("file.open");
   }
+  {
+
+    while (!oxygen.begin(Oxygen_IICAddress)) {
+      Serial.println("I2c device number error !");
+      delay(1000);
+    }
+    Serial.println("I2c connect success !");
+  }
   bmp280.begin();
   writeHeader();
+  int msElapsed = millis();
 }
 
 //--------------------------
@@ -210,22 +219,27 @@ void loop() {
 
   // Serial.println("--");
   //GPSloop();
-  //  if (Serial.available()) {
-  //    char c = Serial.read();
-  //    GPSSerial.println(c);
-  //  }
-  //  if (GPSSerial.available()) {
-  //    char c = GPSSerial.read();
-  //    Serial.print(c);
-  //  }
+   if (Serial.available()) {
+     char c = Serial.read();
+     GPSSerial.println(c);
+   }
+   if (GPSSerial.available()) {
+     char c = GPSSerial.read();
+     Serial.print(c);
+   }
   measureGPS();
-  delay(60);
-  measureBMP280();
-  delay(60);
-  measureColor();
-  delay(60);
-  measure02();
-  logData();
+  //delay(60);
+  //measureBMP280();
+  //delay(60);
+  //measureColor();
+  //delay(60);
+  // measure02();
+  // Serial.println("Start ");
+  // Serial.println(millis());
+  // logData();
+
+  // Serial.println("Stopppoppppppp ");
+  // Serial.println(millis());
 }
 
 
@@ -242,9 +256,9 @@ void measureBMP280() {
   bmp280.startNormalConversion();
   Serial.println("in BMP280 fucntion");
   delay(100);
-  bmp280.getMeasurements(temperature, pressure, altitude);   
-  delay(100);   // Start BMP280 forced conversion (if we're in SLEEP_MODE)
-  
+  bmp280.getMeasurements(temperature, pressure, altitude);
+  delay(100);  // Start BMP280 forced conversion (if we're in SLEEP_MODE)
+
   Serial.println(temperature);
   if (bmp280.getMeasurements(temperature, pressure, altitude))  // Check if the measurement is complete
   {
@@ -254,7 +268,6 @@ void measureBMP280() {
     Serial.print(F("hPa   "));
     data[3] = altitude;
     Serial.println(F("m"));
-    
   }
 }
 void measureColor() {
@@ -272,8 +285,8 @@ void measureColor() {
 void measure02() {
   float oxygenData = oxygen.getOxygenData(COLLECT_NUMBER);
   data[21] = oxygenData;
-  Serial.print("Oxygen");
-  Serial.println(oxygenData);
+  Serial.println("Oxygen");
+  Serial.print(oxygenData);
   delay(1000);
 }
 
