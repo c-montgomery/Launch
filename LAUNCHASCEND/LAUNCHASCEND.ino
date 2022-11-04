@@ -1,3 +1,8 @@
+#include <MemoryFree.h>;
+#include <pgmStrToRAM.h>;
+////////////////////////////////
+#include <Adafruit_VEML6070.h>
+
 #include <AltSoftSerial.h>
 
 #include <TinyGPS++.h>
@@ -36,10 +41,43 @@
 #define COLLECT_NUMBER 10            // collect number, the collection range is 1-100. //02
 const int chipSelect = 53;
 
+#define ms 0
+#define UTCTime 1
+#define Altitude 2
+#define Lat 3
+#define Long 4
+#define Altitude 5
+#define BNOonboardTemp 6
+#define temperatureOutside 7
+#define OrientX 8
+#define OrientY 9
+#define OrientZ 10
+#define AccelX 11
+#define AccelY 12
+#define AccelZ 13
+#define GravityX 14
+#define GravityY 15
+#define GravityZ 16
+#define Magx 17
+#define Magy 18
+#define Magz 19
+#define GyroX 20
+#define GyroY 21
+#define GyroZ 22
+#define RotX 23
+#define RotY 24
+#define RotZ 25
+#define Red 26
+#define Green 27
+#define Blue 28
+#define IR 29
+#define UV 30
+#define barPressure 31
+#define O2 32
 
 //SD card header count and header fields
-const uint8_t ANALOG_COUNT = 21;
-String dataPoints[ANALOG_COUNT] = { "micros", "lat", "long", "Altitude", "OrientX", "OrientY", "OrientZ", "AccelX", "AccelY", "AccelZ", "GravityX", "GravityY", "GravityZ", "Red", "Green", "Blue", "IR", "Temperature", "UV", "Pressure", "02" };
+const uint8_t ANALOG_COUNT = 33;
+String dataPoints[ANALOG_COUNT] = { "ms", "UTCTime", "Altitude","lat", "long", "Altitude", "BNOonboardTemp", "temperatureOutside", "OrientX", "OrientY", "OrientZ", "AccelX", "AccelY", "AccelZ", "GravityX", "GravityY", "GravityZ", "Magx", "Magy", "Magz", "GyroX", "GyroY","GyroZ","RotX", "RotY", "RotZ", "Red","Green", "Blue", "IR", "UV", "Pressure", "02" };
 //Sd storage array
 String data[ANALOG_COUNT];
 
@@ -65,6 +103,8 @@ Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28);  //Instantiate BNO-055
 Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS34725_GAIN_4X);  //RGB
 
 DFRobot_OxygenSensor oxygen;
+
+Adafruit_VEML6070 uv = Adafruit_VEML6070();  //UV SENSOR
 
 float temperature, pressure, altitude;  // Create the temperature, pressure and altitude variables
 BMP280_DEV bmp280;
@@ -102,6 +142,7 @@ void setup() {
   //  // Open serial communications and wait for port to open:
   Serial.begin(115200);
   altSerial.begin(115200);
+  uv.begin(VEML6070_HALF_T);
   delay(1000);
 
   //sd HALT ERROR
@@ -126,49 +167,28 @@ void setup() {
   if (!file.open(fileName, O_WRONLY | O_CREAT | O_EXCL)) {
     error("file.open");
   }
-  {
-
-    while (!oxygen.begin(Oxygen_IICAddress)) {
-      Serial.println("I2c device number error !");
-      delay(1000);
-    }
-    Serial.println("I2c connect success !");
+  //INITIALIZE BNO 055 ACCELEROMETER
+  if (!bno.begin()) {
+    /* There was a problem detecting the BNO055 ... check your connections */
+    // Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
+    // while (1);
   }
+
+  oxygen.begin(Oxygen_IICAddress);
+
   bmp280.begin();
   writeHeader();
   int msElapsed = millis();
 }
 
-//--------------------------
-//  //INITIALIZE BNO 055 ACCELEROMETER
-//  if (!bno.begin())
-//  {
-//    /* There was a problem detecting the BNO055 ... check your connections */
-//    Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
-//    // while (1);
-//  }
-//  delay(1000);
-//  // Define pin modes for TX and RX
-//  pinMode(RXpin, INPUT);
-//
-//  pinMode(TXpin, OUTPUT);
+
+
 
 void loop() {
-
-  // Start the receiver.  parameter specified, take LED_BUILTIN pin from the internal boards definition as default feedback LED
-  //IrReceiver.begin(IR_RECEIVE_PIN, ENABLE_LED_FEEDBACK);
-
-  //
-  ////////////
-  ///////////////////placeholder for IR if statement to resume loop
-  ///////////
-
-
-
+  Serial.println("begin");
 
   // Time for next record.
   logTime += 1000UL * SAMPLE_INTERVAL_MS;
-
   // Wait for log time.
   int32_t diff;
   do {
@@ -180,95 +200,75 @@ void loop() {
   //   error("Missed data record");
   // }
 
-  Serial.println("beginning of loop");
-  Serial.println(gps.satellites.value());
-  delay(50);
-  char c;
-  Serial.println("Latitude");
-
-  Serial.println(gps.location.lat());
-
-
-  if (Serial.available()) {
-    c = Serial.read();
-
-    altSerial.print(c);
-  }
-  if (altSerial.available()) {
-
-    c = gps.encode(altSerial.read());
-    delay(100);
-    Serial.print(c);
-  }
-
-
-
-
-
-
-  // uint8_t system, gyro, accel, mag = 0;
-  // bno.getCalibration(&system, &gyro, &accel, &mag);
-  // Serial.println();
-  // Serial.print("Calibration: Sys=");
-  // Serial.print(system);
-  // Serial.print(" Gyro=");
-  // Serial.print(gyro);
-  // Serial.print(" Accel=");
-  // Serial.print(accel);
-
-
-  // Serial.println("--");
-  //GPSloop();
-   if (Serial.available()) {
-     char c = Serial.read();
-     GPSSerial.println(c);
-   }
-   if (GPSSerial.available()) {
-     char c = GPSSerial.read();
-     Serial.print(c);
-   }
-  measureGPS();
-  //delay(60);
-  //measureBMP280();
-  //delay(60);
-  //measureColor();
-  //delay(60);
-  // measure02();
   // Serial.println("Start ");
   // Serial.println(millis());
-  // logData();
+  // Serial.println(gps.satellites.value());
 
-  // Serial.println("Stopppoppppppp ");
-  // Serial.println(millis());
+  // char c;
+  // Serial.println("Latitude");
+
+  // Serial.println(gps.location.lat());
+
+
+  // if (Serial.available()) {
+  //   c = Serial.read();
+
+  //   altSerial.print(c);
+  // }
+  // if (altSerial.available()) {
+
+  //   c = gps.encode(altSerial.read());
+  //   delay(100);
+  //   Serial.print(c);
+  // }
+  // Serial.println("--");
+  //GPSloop();
+  //  if (Serial.available()) {
+  //    char c = Serial.read();
+  //    GPSSerial.println(c);
+  //  }
+  //  if (GPSSerial.available()) {
+  //    char c = GPSSerial.read();
+  //    Serial.print(c);
+  //  }
+  //measureGPS();
+  measureBNO();
+  measureUV();
+  measureBMP280();
+  measureColor();
+  measure02();
+  measureIR();
+  logData();
 }
 
 
 ////////////////////////////////////////////Functions///////////////////////////////////
 ////--------------------------
+void measureIR(){
+  data[IR] = analogRead(A0);
+}
 void measureGPS() {
-  data[0] = logTime;
-  data[1] = gps.time.value();
-  data[2] = gps.location.lat();
-  data[3] = gps.location.lng();
-  data[3] = gps.altitude.meters();
+
+  data[ms] = logTime / 1000;  //fills micros field
+  data[UTCTime] = gps.time.value();
+  data[Lat] = gps.location.lat();
+  data[Long] = gps.location.lng();
+  data[Altitude] = gps.altitude.meters();
 }
 void measureBMP280() {
   bmp280.startNormalConversion();
-  Serial.println("in BMP280 fucntion");
-  delay(100);
+
   bmp280.getMeasurements(temperature, pressure, altitude);
   delay(100);  // Start BMP280 forced conversion (if we're in SLEEP_MODE)
-
-  Serial.println(temperature);
   if (bmp280.getMeasurements(temperature, pressure, altitude))  // Check if the measurement is complete
   {
-    data[17] = temperature;
-    Serial.print(pressure);
-    data[19] = pressure;
-    Serial.print(F("hPa   "));
-    data[3] = altitude;
-    Serial.println(F("m"));
+    data[temperatureOutside] = temperature;
+    data[barPressure] = pressure;
+    data[Altitude] = altitude;
   }
+}
+void measureUV() {
+  data[UV] = uv.readUV();
 }
 void measureColor() {
 
@@ -277,69 +277,81 @@ void measureColor() {
   tcs.getRGB(&red, &green, &blue);
   //store in array
 
-  data[13] = (int(red));
-  data[14] = (int(green));
-  data[15] = (int(blue));
-  Serial.println();
+  data[Red] = (int(red));
+  data[Green] = (int(green));
+  data[Blue] = (int(blue));
 }
 void measure02() {
   float oxygenData = oxygen.getOxygenData(COLLECT_NUMBER);
-  data[21] = oxygenData;
-  Serial.println("Oxygen");
-  Serial.print(oxygenData);
-  delay(1000);
+  data[O2] = oxygenData;
+  // Serial.println("Oxygen");
+  // Serial.println(oxygenData);
 }
+void measureBNO() {
 
+  uint8_t system, gyro, accel, mag = 0;
+  sensors_event_t orientationData, angVelocityData, linearAccelData, magnetometerData, accelerometerData, gravityData;
+
+  bno.getCalibration(&system, &gyro, &accel, &mag);
+  bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
+  bno.getEvent(&angVelocityData, Adafruit_BNO055::VECTOR_GYROSCOPE);
+  bno.getEvent(&linearAccelData, Adafruit_BNO055::VECTOR_LINEARACCEL);
+  bno.getEvent(&magnetometerData, Adafruit_BNO055::VECTOR_MAGNETOMETER);
+  bno.getEvent(&accelerometerData, Adafruit_BNO055::VECTOR_ACCELEROMETER);
+  bno.getEvent(&gravityData, Adafruit_BNO055::VECTOR_GRAVITY);
+}
 void printEvent(sensors_event_t* event) {
   double x = -1000000, y = -1000000, z = -1000000;  //dumb values, easy to spot problem
   if (event->type == SENSOR_TYPE_ACCELEROMETER) {
-    Serial.print("Accl:");
+    
     x = event->acceleration.x;
     y = event->acceleration.y;
     z = event->acceleration.z;
+    data[AccelX] = x;
+    data[AccelY] = y;
+    data[AccelZ] = z;
   } else if (event->type == SENSOR_TYPE_ORIENTATION) {
-    Serial.print("Orient:");
+    
     x = event->orientation.x;
-
     y = event->orientation.y;
     z = event->orientation.z;
-    data[3] = x;
-    data[4] = y;
-    data[5] = z;
+    data[OrientX] = x;
+    data[OrientY] = y;
+    data[OrientZ] = z;
   } else if (event->type == SENSOR_TYPE_GYROSCOPE) {
-    Serial.print("Gyro:");
+    
     x = event->gyro.x;
     y = event->gyro.y;
     z = event->gyro.z;
+    data[GyroX] = x;
+    data[GyroY] = y;
+    data[GyroZ] = z;
   } else if (event->type == SENSOR_TYPE_ROTATION_VECTOR) {
-    Serial.print("Rot:");
+    
     x = event->gyro.x;
     y = event->gyro.y;
     z = event->gyro.z;
+    data[RotX] = x;
+    data[RotY] = y;
+    data[RotZ] = z;
   } else if (event->type == SENSOR_TYPE_LINEAR_ACCELERATION) {
-    Serial.print("Linear:");
+  
     x = event->acceleration.x;
     y = event->acceleration.y;
     z = event->acceleration.z;
   } else if (event->type == SENSOR_TYPE_GRAVITY) {
-    Serial.print("Gravity:");
+    
     x = event->acceleration.x;
     y = event->acceleration.y;
     z = event->acceleration.z;
+    data[GravityX] = x;
+    data[GravityY] = y;
+    data[GravityZ] = z;
   } else {
     Serial.print("Unk:");
   }
 
-  Serial.print("\tx= ");
-  Serial.print(x);
-  Serial.print(" |\ty= ");
-  Serial.print(y);
-  Serial.print(" |\tz= ");
-  Serial.println(z);
-  //Print elapsed time
-  Serial.println("ms Passed: ");
-  Serial.println(millis());
-  Serial.println(msElapsed);
+  
 }
 
 //------------------------------------------------------------------------------
@@ -362,8 +374,6 @@ void logData() {
     error("open CSV failed");
   }
 
-
-
   // Write ADC data to CSV record.
   for (uint8_t i = 0; i < ANALOG_COUNT; i++) {
     file.write(',');
@@ -371,7 +381,7 @@ void logData() {
   }
 
   //return carriage //newline
-  file.print("\r");
+  //file.print("\r");
   file.write("\n");
   file.close();
 }
