@@ -16,6 +16,8 @@
 #include <MinimumSerial.h>
 #include <SdFat.h>
 
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
 #include <Adafruit_TCS34725.h>
 #include <NMEAGPS.h>
 #include <GPSport.h>
@@ -25,6 +27,7 @@
 #include <SoftwareSerial.h>
 #include <Adafruit_BNO055.h>
 #include <BMP280_DEV.h>  // Include the BMP280_DEV.h library
+#include "Adafruit_BME680.h"
 
 
 
@@ -40,6 +43,9 @@
 #define Oxygen_IICAddress ADDRESS_3  //02
 #define COLLECT_NUMBER 10            // collect number, the collection range is 1-100. //02
 const int chipSelect = 53;
+#define SEALEVELPRESSURE_HPA (1013.25)
+
+
 
 #define ms 0
 #define UTCTime 1
@@ -59,14 +65,14 @@ const int chipSelect = 53;
 #define GravityY 15
 #define GravityZ 16
 #define Magx 17
-#define Magy 18
-#define Magz 19
-#define GyroX 20
-#define GyroY 21
-#define GyroZ 22
-#define RotX 23
-#define RotY 24
-#define RotZ 25
+#define Eighteen 18
+#define Nineteen 19
+#define BMPTemp 20
+#define BMPPressure 21
+#define BMETemp 22
+#define BMEPressure 23
+#define BMEHumidity 24
+#define BMEGas 25
 #define Red 26
 #define Green 27
 #define Blue 28
@@ -77,7 +83,7 @@ const int chipSelect = 53;
 
 //SD card header count and header fields
 const uint8_t ANALOG_COUNT = 33;
-String dataPoints[ANALOG_COUNT] = { "ms", "UTCTime", "Altitude","lat", "long", "Altitude", "BNOonboardTemp", "temperatureOutside", "OrientX", "OrientY", "OrientZ", "AccelX", "AccelY", "AccelZ", "GravityX", "GravityY", "GravityZ", "Magx", "Magy", "Magz", "GyroX", "GyroY","GyroZ","RotX", "RotY", "RotZ", "Red","Green", "Blue", "IR", "UV", "Pressure", "02" };
+String dataPoints[ANALOG_COUNT] = { "ms", "UTCTime", "Altitude", "lat", "long", "Altitude", "BNOonboardTemp", "temperatureOutside", "OrientX", "OrientY", "OrientZ", "AccelX", "AccelY", "AccelZ", "GravityX", "GravityY", "GravityZ", "Magx", "Magy", "Magz", "BMPTemp", "BMPPressure", "BMETemp", "BMEPressure", "BMEHumidity", "BMEGas", "Red", "Green", "Blue", "IR", "UV", "Pressure", "02" };
 //Sd storage array
 String data[ANALOG_COUNT];
 
@@ -108,6 +114,7 @@ Adafruit_VEML6070 uv = Adafruit_VEML6070();  //UV SENSOR
 
 float temperature, pressure, altitude;  // Create the temperature, pressure and altitude variables
 BMP280_DEV bmp280;
+Adafruit_BME680 bme; // I2C
 
 ////------------------------------------------------------------------------------
 //////SD Card
@@ -149,7 +156,11 @@ void setup() {
   if (!sd.begin(chipSelect, SD_SCK_MHZ(50))) {
     sd.initErrorHalt();
   }
-
+  if (!bme.begin()) {
+    Serial.println(F("Could not find a valid BME680 sensor, check wiring!"));
+    while (1)
+      ;
+  }
   // Find an unused file name.
   if (BASE_NAME_SIZE > 6) {
     error("FILE_BASE_NAME too long");
@@ -173,7 +184,12 @@ void setup() {
     // Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
     // while (1);
   }
-
+  //oversampling and filter init
+  bme.setTemperatureOversampling(BME680_OS_8X);
+  bme.setHumidityOversampling(BME680_OS_2X);
+  bme.setPressureOversampling(BME680_OS_4X);
+  bme.setIIRFilterSize(BME680_FILTER_SIZE_3);
+  bme.setGasHeater(320, 150);  // 320*C for 150 ms
   oxygen.begin(Oxygen_IICAddress);
 
   bmp280.begin();
@@ -194,7 +210,7 @@ void loop() {
   do {
     diff = micros() - logTime;
   } while (diff < 0);
-
+  unsigned long endTime = bme.beginReading();
   // // Check for data rate too high.
   // if (diff > 10) {
   //   error("Missed data record");
@@ -231,20 +247,22 @@ void loop() {
   //    char c = GPSSerial.read();
   //    Serial.print(c);
   //  }
-  //measureGPS();
-  measureBNO();
+  measureGPS();
+  //measureBNO();
   measureUV();
-  measureBMP280();
+  //measureBMP280();
+  measureBME680();
   measureColor();
   measure02();
   measureIR();
   logData();
+  Serial.println(endTime);
 }
 
 
 ////////////////////////////////////////////Functions///////////////////////////////////
 ////--------------------------
-void measureIR(){
+void measureIR() {
   data[IR] = analogRead(A0);
 }
 void measureGPS() {
@@ -255,11 +273,18 @@ void measureGPS() {
   data[Long] = gps.location.lng();
   data[Altitude] = gps.altitude.meters();
 }
+void measureBME680(){
+  bme.performReading();
+  data[BMETemp] = bme.temperature;
+  data[BMEPressure] = bme.pressure/100.0;
+  data[BMEHumidity] = bme.humidity;
+  data[BMEGas] = bme.gas_resistance;
+}
 void measureBMP280() {
   bmp280.startNormalConversion();
 
   bmp280.getMeasurements(temperature, pressure, altitude);
-  delay(100);  // Start BMP280 forced conversion (if we're in SLEEP_MODE)
+  delay(100);                                                   // Start BMP280 forced conversion (if we're in SLEEP_MODE)
   if (bmp280.getMeasurements(temperature, pressure, altitude))  // Check if the measurement is complete
   {
     data[temperatureOutside] = temperature;
@@ -300,59 +325,57 @@ void measureBNO() {
   bno.getEvent(&accelerometerData, Adafruit_BNO055::VECTOR_ACCELEROMETER);
   bno.getEvent(&gravityData, Adafruit_BNO055::VECTOR_GRAVITY);
 }
-void printEvent(sensors_event_t* event) {
-  double x = -1000000, y = -1000000, z = -1000000;  //dumb values, easy to spot problem
-  if (event->type == SENSOR_TYPE_ACCELEROMETER) {
-    
-    x = event->acceleration.x;
-    y = event->acceleration.y;
-    z = event->acceleration.z;
-    data[AccelX] = x;
-    data[AccelY] = y;
-    data[AccelZ] = z;
-  } else if (event->type == SENSOR_TYPE_ORIENTATION) {
-    
-    x = event->orientation.x;
-    y = event->orientation.y;
-    z = event->orientation.z;
-    data[OrientX] = x;
-    data[OrientY] = y;
-    data[OrientZ] = z;
-  } else if (event->type == SENSOR_TYPE_GYROSCOPE) {
-    
-    x = event->gyro.x;
-    y = event->gyro.y;
-    z = event->gyro.z;
-    data[GyroX] = x;
-    data[GyroY] = y;
-    data[GyroZ] = z;
-  } else if (event->type == SENSOR_TYPE_ROTATION_VECTOR) {
-    
-    x = event->gyro.x;
-    y = event->gyro.y;
-    z = event->gyro.z;
-    data[RotX] = x;
-    data[RotY] = y;
-    data[RotZ] = z;
-  } else if (event->type == SENSOR_TYPE_LINEAR_ACCELERATION) {
-  
-    x = event->acceleration.x;
-    y = event->acceleration.y;
-    z = event->acceleration.z;
-  } else if (event->type == SENSOR_TYPE_GRAVITY) {
-    
-    x = event->acceleration.x;
-    y = event->acceleration.y;
-    z = event->acceleration.z;
-    data[GravityX] = x;
-    data[GravityY] = y;
-    data[GravityZ] = z;
-  } else {
-    Serial.print("Unk:");
-  }
+// void printEvent(sensors_event_t* event) {
+//   double x = -1000000, y = -1000000, z = -1000000;  //dumb values, easy to spot problem
+//   if (event->type == SENSOR_TYPE_ACCELEROMETER) {
 
-  
-}
+//     x = event->acceleration.x;
+//     y = event->acceleration.y;
+//     z = event->acceleration.z;
+//     data[AccelX] = x;
+//     data[AccelY] = y;
+//     data[AccelZ] = z;
+//   } else if (event->type == SENSOR_TYPE_ORIENTATION) {
+
+//     x = event->orientation.x;
+//     y = event->orientation.y;
+//     z = event->orientation.z;
+//     data[OrientX] = x;
+//     data[OrientY] = y;
+//     data[OrientZ] = z;
+//   } else if (event->type == SENSOR_TYPE_GYROSCOPE) {
+
+//     x = event->gyro.x;
+//     y = event->gyro.y;
+//     z = event->gyro.z;
+//     data[GyroX] = x;
+//     data[GyroY] = y;
+//     data[GyroZ] = z;
+  // } else if (event->type == SENSOR_TYPE_ROTATION_VECTOR) {
+
+  //   x = event->gyro.x;
+  //   y = event->gyro.y;
+  //   z = event->gyro.z;
+  //   data[RotX] = x;
+  //   data[RotY] = y;
+  //   data[RotZ] = z;
+  // } else if (event->type == SENSOR_TYPE_LINEAR_ACCELERATION) {
+
+//     x = event->acceleration.x;
+//     y = event->acceleration.y;
+//     z = event->acceleration.z;
+//   } else if (event->type == SENSOR_TYPE_GRAVITY) {
+
+//     x = event->acceleration.x;
+//     y = event->acceleration.y;
+//     z = event->acceleration.z;
+//     data[GravityX] = x;
+//     data[GravityY] = y;
+//     data[GravityZ] = z;
+//   } else {
+//     Serial.print("Unk:");
+//   }
+// }
 
 //------------------------------------------------------------------------------
 //Write data header.
