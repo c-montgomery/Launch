@@ -26,9 +26,9 @@
 #include <SPI.h>
 #include <SoftwareSerial.h>
 #include <Adafruit_BNO055.h>
-#include <BMP280_DEV.h>  // Include the BMP280_DEV.h library
+//#include <BMP280_DEV.h>  // Include the BMP280_DEV.h library
 #include "Adafruit_BME680.h"
-
+#include <Adafruit_BMP280.h>
 
 
 
@@ -66,7 +66,7 @@ const int chipSelect = 53;
 #define GravityZ 16
 #define Magx 17
 #define Eighteen 18
-#define Nineteen 19
+#define BMPAltitude 19
 #define BMPTemp 20
 #define BMPPressure 21
 #define BMETemp 22
@@ -83,7 +83,7 @@ const int chipSelect = 53;
 
 //SD card header count and header fields
 const uint8_t ANALOG_COUNT = 33;
-String dataPoints[ANALOG_COUNT] = { "ms", "UTCTime", "Altitude", "lat", "long", "Altitude", "BNOonboardTemp", "temperatureOutside", "OrientX", "OrientY", "OrientZ", "AccelX", "AccelY", "AccelZ", "GravityX", "GravityY", "GravityZ", "Magx", "Magy", "Magz", "BMPTemp", "BMPPressure", "BMETemp", "BMEPressure", "BMEHumidity", "BMEGas", "Red", "Green", "Blue", "IR", "UV", "Pressure", "02" };
+String dataPoints[ANALOG_COUNT] = { "ms", "UTCTime", "Altitude", "lat", "long", "Altitude", "BNOonboardTemp", "temperatureOutside", "OrientX", "OrientY", "OrientZ", "AccelX", "AccelY", "AccelZ", "GravityX", "GravityY", "GravityZ", "Magx", "Magy", "BMPAltitude", "BMPTemp", "BMPPressure", "BMETemp", "BMEPressure", "BMEHumidity", "BMEGas", "Red", "Green", "Blue", "IR", "UV", "Pressure", "02" };
 //Sd storage array
 String data[ANALOG_COUNT];
 
@@ -113,7 +113,8 @@ DFRobot_OxygenSensor oxygen;
 Adafruit_VEML6070 uv = Adafruit_VEML6070();  //UV SENSOR
 
 float temperature, pressure, altitude;  // Create the temperature, pressure and altitude variables
-BMP280_DEV bmp280;
+Adafruit_BMP280 bmp; // I2C
+
 Adafruit_BME680 bme; // I2C
 
 ////------------------------------------------------------------------------------
@@ -179,7 +180,7 @@ void setup() {
     error("file.open");
   }
   //INITIALIZE BNO 055 ACCELEROMETER
-  if (!bno.begin()) {
+  //if (!bno.begin()) {
     /* There was a problem detecting the BNO055 ... check your connections */
     // Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
     // while (1);
@@ -192,7 +193,14 @@ void setup() {
   bme.setGasHeater(320, 150);  // 320*C for 150 ms
   oxygen.begin(Oxygen_IICAddress);
 
-  bmp280.begin();
+  bmp.begin();
+   /* Default settings from datasheet. */
+  bmp.setSampling(Adafruit_BMP280::MODE_NORMAL,     /* Operating Mode. */
+                  Adafruit_BMP280::SAMPLING_X2,     /* Temp. oversampling */
+                  Adafruit_BMP280::SAMPLING_X16,    /* Pressure oversampling */
+                  Adafruit_BMP280::FILTER_X16,      /* Filtering. */
+                  Adafruit_BMP280::STANDBY_MS_500); /* Standby time. */
+
   writeHeader();
   int msElapsed = millis();
 }
@@ -247,16 +255,15 @@ void loop() {
   //    char c = GPSSerial.read();
   //    Serial.print(c);
   //  }
-  measureGPS();
+  //measureGPS();
   //measureBNO();
   measureUV();
-  //measureBMP280();
+  measureBMP280();
   measureBME680();
   measureColor();
   measure02();
   measureIR();
   logData();
-  Serial.println(endTime);
 }
 
 
@@ -281,16 +288,11 @@ void measureBME680(){
   data[BMEGas] = bme.gas_resistance;
 }
 void measureBMP280() {
-  bmp280.startNormalConversion();
-
-  bmp280.getMeasurements(temperature, pressure, altitude);
-  delay(100);                                                   // Start BMP280 forced conversion (if we're in SLEEP_MODE)
-  if (bmp280.getMeasurements(temperature, pressure, altitude))  // Check if the measurement is complete
-  {
-    data[temperatureOutside] = temperature;
-    data[barPressure] = pressure;
-    data[Altitude] = altitude;
-  }
+  
+    data[BMPTemp] = bmp.readTemperature();
+    data[BMPPressure] = bmp.readPressure();
+    data[BMPAltitude] = bmp.readAltitude(1013.25);
+ 
 }
 void measureUV() {
   data[UV] = uv.readUV();
