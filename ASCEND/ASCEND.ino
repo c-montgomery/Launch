@@ -13,7 +13,13 @@
 //Altitude/humidity/BMP280
 //MICS2714 breakout
 //MICS-4514
-/////////////////////////////////////////////////
+//////////////----------Functions---------//////////////////////////////////
+
+//READS A1's signal and saves to array.
+int getUV(){
+  analogRead(A1);
+  
+}
 //
 //
 //
@@ -34,11 +40,15 @@
 //
 
 void setup() {
-  // put your setup code here, to run once:
+  //Begin Serial
+  Serial.begin(115200);
+  //create analog in to read GUVA UV SENSOR
+  pinMode(A0, INPUT);
 
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
+  getUV();
 
 }
