@@ -1,5 +1,5 @@
 //----Current working on
-//Functionality check -- 2/9
+//Functionality check -- 3/9
 //
 //
 //
@@ -7,18 +7,23 @@
 //Button
 //GPS
 //Temperature
-//GUVA-S12 UV Sensor
-//UV sensor/LTR390-UV
+//GUVA-S12 UV Sensor X
+//UV sensor/LTR390-UV --DOESNT WORK
 //GEIGER COUNTER
 //Altitude/humidity/BMP280
 //MICS2714 breakout
 //MICS-4514
 //////////////----------Functions---------//////////////////////////////////
 
-//READS A1's signal and saves to array.
-int getUV(){
+//READS A1's signal and saves to array?.
+//getUV uses the GUVA S12SD
+void getUV(){
   analogRead(A1);
   
+}
+//4 wire temp probe's code
+void getTempHumidity(){
+
 }
 //
 //
