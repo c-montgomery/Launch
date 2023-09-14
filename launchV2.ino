@@ -4,21 +4,24 @@
 #include <Adafruit_BNO055.h>
 #include <Adafruit_LTR390.h>
 #include <TinyGPS++.h>
+#include <AHT20.h>
 #include <SD.h>
 #include <SPI.h>
-#include <avr/pgmspace.h>
 
 ////////////////////////////////////////////////////////////
-//////////////////////////////   CONSTANTS and VARIABLES
+//////////////////////////////   Object declarations and constants
 ////////////////////////////////////////////////////////////  
 
 class SensorData {
+
 public:
-  SensorData() : uvSensor(Adafruit_LTR390()), rgbSensor(Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_614MS, TCS34725_GAIN_1X)), bnoSensor(Adafruit_BNO055(55)) {}
+  
+  SensorData() : uvSensor(Adafruit_LTR390()), rgbSensor(Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_614MS, TCS34725_GAIN_1X)), bnoSensor(Adafruit_BNO055(55)),ahtSensor1(AHT20()) {}
 
   Adafruit_LTR390 uvSensor;
   Adafruit_TCS34725 rgbSensor;
   Adafruit_BNO055 bnoSensor;
+  AHT20 aht20Sensor1;
 };
 
 volatile bool ppsFlag = false;
@@ -71,9 +74,9 @@ void writeHeader() {
   // Your header writing code here
 }
 
-///////////////////////////////////////                                         ///////////////////////////////////////
-///////////////////////////////////////             SETUP FUNCTION              ///////////////////////////////////////
-///////////////////////////////////////                                         ///////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////SETUP FUNCTIONS             
+//////////////////////////////////////////////////////////////////////////////
 
 void setup() {
   pinMode(53, INPUT);
@@ -100,20 +103,29 @@ void setup() {
   if (!sensorData.bnoSensor.begin()) {
     Serial.println("Failed to find BNO055 sensor!");
   }
+  if (!sensorData.aht20Sensor1.begin()){
+    Serial.println("Failed to find Temp sensor 1")
+  }
 
   attachInterrupt(digitalPinToInterrupt(PPS_PIN), PPS_ISR, RISING);
 }
-
+//////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////LOOPS GON' LOOP             
+//////////////////////////////////////////////////////////////////////////////
 void loop() {
   unsigned long currentMillis = millis();
   // Your loop code here
   logData();
 }
 
+
+
 void logData() {
-  void logData() {
+  //open the SD card
   dataFile = SD.open("/Ascend 2023/Data_Log/data.csv", FILE_WRITE);
   
+
+  //If there's a file, iterate through data points
   if (dataFile) {
     // Log time
     dataFile.print(gps.time.value());
@@ -153,6 +165,14 @@ void logData() {
     int mics_4514_no2_reading = analogRead(mics_4514_no2_pin);
     int mics_4514_co_reading = analogRead(mics_4514_co_pin);
     
+
+    //NOT IN LOOP. MUST BE LOGGED
+    
+    //Get the new temperature and humidity value
+    float temperature = aht20.getTemperature();
+    float humidity = aht20.getHumidity();
+
+    
     dataFile.print(mics_4514_no2_reading);
     dataFile.print(",");
     dataFile.println(mics_4514_co_reading);
@@ -170,4 +190,4 @@ void logData() {
     
   }
 }
-}
+
