@@ -100,7 +100,7 @@ void setup() {
     Serial.println("Failed to find BNO055 sensor!");
   }
   if (!sensorData.aht20Sensor1.begin()){
-    Serial.println("Failed to find Temp sensor 1")
+    Serial.println("Failed to find Temp sensor 1");
   }
 
   attachInterrupt(digitalPinToInterrupt(PPS_PIN), PPS_ISR, RISING);
@@ -124,44 +124,44 @@ void loop() {
 
 void logData() {
   //open the SD card
-  SensorData.dataFile = SD.open("/Ascend 2023/Data_Log/data.csv", FILE_WRITE);
+  sensorData.dataFile = SD.open("/Ascend 2023/Data_Log/data.csv", FILE_WRITE);
   
 
   //If there's a file, iterate through data points
-  if (SensorData.dataFile) {
+  if (sensorData.dataFile) {
     // Log time
-    SensorData.dataFile.print(gps.time.value());
-    SensorData.dataFile.print(",");
+    sensorData.dataFile.print(gps.time.value());
+    sensorData.dataFile.print(",");
 
     // Log GPS data
-    SensorData.dataFile.print(gps.location.lat(), 6);
-    SensorData.dataFile.print(",");
-    SensorData.dataFile.print(gps.location.lng(), 6);
-    SensorData.dataFile.print(",");
-    SensorData.dataFile.print(gps.altitude.meters());
-    SensorData.dataFile.print(",");
-    SensorData.dataFile.print(gps.speed.kmph());
-    SensorData.dataFile.print(",");
-    SensorData.dataFile.print(gps.course.deg());
-    SensorData.dataFile.print(",");
-    SensorData.dataFile.print(gps.satellites.value());
-    SensorData.dataFile.print(",");
+    sensorData.dataFile.print(gps.location.lat(), 6);
+    sensorData.dataFile.print(",");
+    sensorData.dataFile.print(gps.location.lng(), 6);
+    sensorData.dataFile.print(",");
+    sensorData.dataFile.print(gps.altitude.meters());
+    sensorData.dataFile.print(",");
+    sensorData.dataFile.print(gps.speed.kmph());
+    sensorData.dataFile.print(",");
+    sensorData.dataFile.print(gps.course.deg());
+    sensorData.dataFile.print(",");
+    sensorData.dataFile.print(gps.satellites.value());
+    sensorData.dataFile.print(",");
 
     // Log UV sensor data
-    float uv = SensorData.ltr390.readUVS();
+    float uv = sensorData.ltr390.readUVS();
 
-    SensorData.dataFile.print(uv);
-    SensorData.dataFile.print(",");
+    sensorData.dataFile.print(uv);
+    sensorData.dataFile.print(",");
 
     // Log RGB color sensor data
     uint16_t r, g, b, c;
-    SensorData.tcs.getRawData(&r, &g, &b, &c);
-    SensorData.dataFile.print(r);
-    SensorData.dataFile.print(",");
-    SensorData.dataFile.print(g);
-    SensorData.dataFile.print(",");
-    SensorData.dataFile.print(b);
-    SensorData.dataFile.print(",");
+    sensorData.tcs.getRawData(&r, &g, &b, &c);
+    sensorData.dataFile.print(r);
+    sensorData.dataFile.print(",");
+    sensorData.dataFile.print(g);
+    sensorData.dataFile.print(",");
+    sensorData.dataFile.print(b);
+    sensorData.dataFile.print(",");
 
     // Log MICS-4514 data
     int mics_4514_no2_reading = analogRead(mics_4514_no2_pin);
@@ -171,23 +171,23 @@ void logData() {
     //NOT IN LOOP. MUST BE LOGGED
     
     //Get the new temperature and humidity value
-    float temperature = SensorData.aht20Sensor1.getTemperature();
-    float humidity = SensorData.aht20Sensor1.getHumidity();
+    float temperature = sensorData.aht20Sensor1.getTemperature();
+    float humidity = sensorData.aht20Sensor1.getHumidity();
 
     
-    SensorData.dataFile.print(mics_4514_no2_reading);
-    SensorData.dataFile.print(",");
-    SensorData.dataFile.println(mics_4514_co_reading);
+    sensorData.dataFile.print(mics_4514_no2_reading);
+    sensorData.dataFile.print(",");
+    sensorData.dataFile.println(mics_4514_co_reading);
 
     // End the line
-    SensorData.dataFile.println();
+    sensorData.dataFile.println();
 
     // Close the file
-    SensorData.dataFile.close();
+    sensorData.dataFile.close();
     Serial.println("Data logged to data.csv");
 
   } else {
-    dataFile.close();
+    sensorData.dataFile.close();
     Serial.println("Error opening data.csv");
     
   }
