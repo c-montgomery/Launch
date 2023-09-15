@@ -17,7 +17,7 @@ class SensorData {
 
 public:
   
-  SensorData() : uvSensor(Adafruit_LTR390()), rgbSensor(Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_614MS, TCS34725_GAIN_1X)), bnoSensor(Adafruit_BNO055(55)),ahtSensor1(AHT20()) {}
+  SensorData() : uvSensor(Adafruit_LTR390()), rgbSensor(Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_614MS, TCS34725_GAIN_1X)), bnoSensor(Adafruit_BNO055(55)),aht20Sensor1(AHT20()) {}
 
   Adafruit_LTR390 uvSensor;
   Adafruit_TCS34725 rgbSensor;
