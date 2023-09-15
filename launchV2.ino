@@ -9,17 +9,23 @@
 #include <SPI.h>
 #include "SensorData.cpp"
 
+
+
 ////////////////////////////////////////////////////////////
 //////////////////////////////   Object declarations and constants
 ////////////////////////////////////////////////////////////  
 
 
-
+#define PPS_PIN 19
 volatile bool ppsFlag = false;
 
 //SD card header count and header fields
 const uint8_t ANALOG_COUNT = 43;
-String dataPoints[ANALOG_COUNT] = { /* your data points */ };
+String dataPoints[ANALOG_COUNT] = { "ms", "UTCTime", "Altitude", "lat", "long", 
+"Altitude", "BNOonboardTemp", "temperatureOutside", "OrientX", "OrientY", "OrientZ", 
+"AccelX", "AccelY", "AccelZ", "GravityX", "GravityY", "GravityZ", "Magx", "Magy", 
+"BMPAltitude", "BMPTemp", "BMPPressure", "BMETemp", "BMEPressure", "BMEHumidity", 
+"BMEGas", "Red", "Green", "Blue", "IR", "UV", "Pressure", "02" };
 
 //Sd storage array
 String data[sizeof(dataPoints)];
@@ -29,11 +35,9 @@ String data[sizeof(dataPoints)];
 //One SensorData object vs X separate sensor instances means less wasted SRAM
 SensorData sensorData;
 
-#define PPS_PIN 19
-volatile bool ppsTriggered = false;
 
-// GPS
-TinyGPSPlus gps;
+
+/////////////////////////////////Analog pins
 
 // GUVA-S12SD
 const int guva_s12sd_pin = A1;
@@ -50,7 +54,6 @@ const int mics_4514_co_pin = A3;
 
 // SD card
 const int chipSelect = 53;
-File dataFile;
 
 // Time variables
 unsigned long prevPPSTime = 0;

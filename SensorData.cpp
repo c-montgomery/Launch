@@ -23,4 +23,7 @@ public:
   Adafruit_TCS34725 rgbSensor;
   Adafruit_BNO055 bnoSensor;
   AHT20 aht20Sensor1;
+  TinyGPSPlus gps;
+  File dataFile;
+  
 };
