@@ -7,22 +7,13 @@
 #include <AHT20.h>
 #include <SD.h>
 #include <SPI.h>
+#include "SensorData.cpp"
 
 ////////////////////////////////////////////////////////////
 //////////////////////////////   Object declarations and constants
 ////////////////////////////////////////////////////////////  
 
-class SensorData {
 
-public:
-  
-  SensorData() : uvSensor(Adafruit_LTR390()), rgbSensor(Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_614MS, TCS34725_GAIN_1X)), bnoSensor(Adafruit_BNO055(55)),ahtSensor1(AHT20()) {}
-
-  Adafruit_LTR390 uvSensor;
-  Adafruit_TCS34725 rgbSensor;
-  Adafruit_BNO055 bnoSensor;
-  AHT20 aht20Sensor1;
-};
 
 volatile bool ppsFlag = false;
 
@@ -34,6 +25,8 @@ String dataPoints[ANALOG_COUNT] = { /* your data points */ };
 String data[sizeof(dataPoints)];
 
 // Define a SensorData instance to encapsulate sensor objects
+// Why? Global vars are stored on SRAM in arduino. SRAM is limited. 
+//One SensorData object vs X separate sensor instances means less wasted SRAM
 SensorData sensorData;
 
 #define PPS_PIN 19
