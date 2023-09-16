@@ -95,11 +95,11 @@ public:
       int mics_4514_no2_reading = analogRead(mics_4514_no2_pin);
       int mics_4514_co_reading = analogRead(mics_4514_co_pin);
 
-      // NOT IN LOOP. MUST BE LOGGED
+      
       
       // Get the new temperature and humidity value
-      float temperature = aht20Sensor1.getTemperature();
-      float humidity = aht20Sensor1.getHumidity();
+      dataFile.print(aht20Sensor1.getTemperature());
+      dataFile.print(aht20Sensor1.getHumidity());
 
       dataFile.print(mics_4514_no2_reading);
       dataFile.print(",");
