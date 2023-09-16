@@ -52,6 +52,8 @@ public:
   AHT20 aht20Sensor1;
   TinyGPSPlus gps;
   File dataFile;
+
+
   void writeHeader() {
     // Create the file on the SD card if it doesn't exist
     dataFile = SD.open("data.csv", FILE_WRITE);
@@ -75,7 +77,7 @@ public:
 
   void logData() {
     // Open the SD card
-    dataFile = SD.open("/Ascend 2023/Data_Log/data.csv", FILE_WRITE);
+    dataFile = SD.open("data.csv", FILE_WRITE);
 
     // If there's a file, iterate through data points
     if (dataFile) {

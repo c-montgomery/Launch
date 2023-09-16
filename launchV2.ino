@@ -52,12 +52,13 @@ void setup() {
 
   if (!SD.begin(chipSelect)) {
     Serial.println("Card failed, or not present");
-    Serial.println(SD.errorCode())
+    
     while(1);
-    writeHeader();
+   
     return;
   }
   Serial.println("Card initialized.");
+   sensorData.writeHeader();
 
   if (!sensorData.uvSensor.begin(&Wire)) {
     Serial.println("Failed to find LTR-390 sensor!");
