@@ -1,12 +1,4 @@
-#include <Wire.h>
-#include <Adafruit_Sensor.h>
-#include <Adafruit_TCS34725.h>
-#include <Adafruit_BNO055.h>
-#include <Adafruit_LTR390.h>
-#include <TinyGPS++.h>
-#include <AHT20.h>
-#include <SD.h>
-#include <SPI.h>
+
 #include "SensorData.h"
 
 
@@ -46,7 +38,24 @@ void PPS_ISR() {
 }
 
 void writeHeader() {
-  // Your header writing code here
+    // Create the file on the SD card if it doesn't exist
+    dataFile = SD.open("data.csv", FILE_WRITE);
+    if (dataFile) {
+      dataFile.println("HH:MM:SS,ms,UTCTime,Altitude,lat,long,Altitude,BNOonboardTemp,temperatureOutside,OrientX,OrientY,OrientZ,AccelX,AccelY,AccelZ,GravityX,GravityY,GravityZ,Magx,Magy,BMPAltitude,BMPTemp,BMPPressure,Red,Green,Blue,IR,UV1 DFrobot,UV2,AdafruitUV");
+      dataFile.flush(); // Save changes to the file
+    } else {
+      Serial.println("Error opening data.csv for writing header");
+    }
+    
+    if (!dataFile) {
+      Serial.println("Error creating data.csv");
+    } else {
+      if (dataFile.size() == 0) {
+        writeHeader();
+      }
+      Serial.println("data.csv created");
+    }
+ 
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -54,14 +63,16 @@ void writeHeader() {
 //////////////////////////////////////////////////////////////////////////////
 
 void setup() {
-  pinMode(53, INPUT);
-  digitalWrite(53, HIGH);
+  pinMode(chipSelect, OUTPUT);
+  digitalWrite(chipSelect, HIGH);
   Serial.begin(115200);
   Wire.begin();
-  pinMode(chipSelect, OUTPUT);
+
 
   if (!SD.begin(chipSelect)) {
     Serial.println("Card failed, or not present");
+    Serial.println(SD.errorCode())
+    while(1);
     writeHeader();
     return;
   }
@@ -87,6 +98,7 @@ void setup() {
 //////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////LOOPS GON' LOOP             
 //////////////////////////////////////////////////////////////////////////////
+
 void loop() {
   unsigned long currentMillis = millis();
   // Your loop code here

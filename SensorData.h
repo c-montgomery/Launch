@@ -1,5 +1,6 @@
 #ifndef SENSORDATA_H
 #define SENSORDATA_H
+
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_TCS34725.h>
@@ -9,6 +10,7 @@
 #include <AHT20.h>
 #include <SD.h>
 #include <SPI.h>
+
 ////////////////////////////////////////////////////////////
 //////////////////////////////   SensorData Class 
 ////////////////////////////////////////////////////////////  
