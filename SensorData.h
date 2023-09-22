@@ -38,6 +38,8 @@ const int chipSelect = 53;
 
 // Time variables
 unsigned long prevPPSTime = 0;
+
+
 ////////////////////////////////////////////////////////////
 //////////////////////////////   SensorData Class 
 ////////////////////////////////////////////////////////////  
@@ -58,23 +60,21 @@ public:
 
 
   void writeHeader() {
-    // Create the file on the SD card if it doesn't exist
-    dataFile = SD.open("data.csv", FILE_WRITE);
-    if (dataFile) {
-      dataFile.println("HH:MM:SS,ms,UTCTime,Altitude,lat,long,Altitude,BNOonboardTemp,temperatureOutside,OrientX,OrientY,OrientZ,AccelX,AccelY,AccelZ,GravityX,GravityY,GravityZ,Magx,Magy,BMPAltitude,BMPTemp,BMPPressure,Red,Green,Blue,IR,UV1 DFrobot,UV2,AdafruitUV");
-      dataFile.flush(); // Save changes to the file
-    } else {
-      Serial.println("Error opening data.csv for writing header");
+    boolean isWritten = false;
+    while(!isWritten){
+      // Create the file on the SD card if it doesn't exist
+      dataFile = SD.open("data.csv", FILE_WRITE);
+      if (dataFile) {
+        dataFile.println("HH:MM:SS,ms,UTCTime,Altitude,lat,long,Altitude,BNOonboardTemp,temperatureOutside,OrientX,OrientY,OrientZ,AccelX,AccelY,AccelZ,GravityX,GravityY,GravityZ,Magx,Magy,BMPAltitude,BMPTemp,BMPPressure,Red,Green,Blue,IR,UV1 DFrobot,UV2,AdafruitUV");
+        dataFile.flush(); // Save changes to the file
+        isWritten = true;
+      } else {
+        Serial.println("Error opening data.csv for writing header");
+        SD.open("data.csv", FILE_WRITE);
+      }
     }
     
-    if (!dataFile) {
-      Serial.println("Error creating data.csv");
-    } else {
-      if (dataFile.size() == 0) {
-        writeHeader();
-      }
-      Serial.println("data.csv created");
-    }
+    
  
 }
 
