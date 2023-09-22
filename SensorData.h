@@ -57,7 +57,7 @@ public:
   AHT20 aht20Sensor1;
   TinyGPSPlus gps;
   File dataFile;
-  Time time;
+  unsigned long elapsed = millis();
 
 
   void writeHeader() {
@@ -87,7 +87,7 @@ public:
     if (dataFile) {
 
       //Log elapsed time
-      dataFile.print()
+      dataFile.print(SensorData.elapsed);
       // Log time from GPS
       dataFile.print(SensorData.gps.time.value());
       dataFile.print(",");
