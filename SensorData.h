@@ -67,7 +67,7 @@ public:
       // Create the file on the SD card if it doesn't exist
       dataFile = SD.open("data.csv", FILE_WRITE);
       if (dataFile) {
-        dataFile.println("HH:MM:SS,ms,UTCTime,Altitude,lat,long,Altitude,BNOonboardTemp,temperatureOutside,OrientX,OrientY,OrientZ,AccelX,AccelY,AccelZ,GravityX,GravityY,GravityZ,Magx,Magy,BMPAltitude,BMPTemp,BMPPressure,Red,Green,Blue,IR,UV1 DFrobot,UV2,AdafruitUV");
+        dataFile.println("HH:MM:SS,ms,UTCTime,Altitude,lat,long,km/h,heading_in_degrees,number_of_sats_connected,UV_value,Red_level,Green_level,Blue_level,temp_sensor1,humidity_sensor1,NO2,CO,GravityZ,Magx,Magy,BMPAltitude,BMPTemp,BMPPressure,Red,Green,Blue,IR,UV1 DFrobot,UV2,AdafruitUV");
         dataFile.flush(); // Save changes to the file
         isWritten = true;
       } else {
@@ -99,11 +99,11 @@ public:
       dataFile.print(",");
 
       // Log GPS data
+      dataFile.print(gps.altitude.meters());
+      dataFile.print(",");
       dataFile.print(gps.location.lat(), 6);
       dataFile.print(",");
       dataFile.print(gps.location.lng(), 6);
-      dataFile.print(",");
-      dataFile.print(gps.altitude.meters());
       dataFile.print(",");
       dataFile.print(gps.speed.kmph());
       dataFile.print(",");
