@@ -57,6 +57,7 @@ public:
   AHT20 aht20Sensor1;
   TinyGPSPlus gps;
   File dataFile;
+  Time time;
 
 
   void writeHeader() {
@@ -84,22 +85,25 @@ public:
 
     // If there's a file, iterate through data points
     if (dataFile) {
-      // Log time
-      dataFile.print(gps.time.value());
+
+      //Log elapsed time
+      dataFile.print()
+      // Log time from GPS
+      dataFile.print(SensorData.gps.time.value());
       dataFile.print(",");
 
       // Log GPS data
-      dataFile.print(gps.location.lat(), 6);
+      dataFile.print(SensorData.gps.location.lat(), 6);
       dataFile.print(",");
-      dataFile.print(gps.location.lng(), 6);
+      dataFile.print(SensorData.gps.location.lng(), 6);
       dataFile.print(",");
-      dataFile.print(gps.altitude.meters());
+      dataFile.print(SensorData.gps.altitude.meters());
       dataFile.print(",");
-      dataFile.print(gps.speed.kmph());
+      dataFile.print(SensorData.gps.speed.kmph());
       dataFile.print(",");
-      dataFile.print(gps.course.deg());
+      dataFile.print(SensorData.gps.course.deg());
       dataFile.print(",");
-      dataFile.print(gps.satellites.value());
+      dataFile.print(SensorData.gps.satellites.value());
       dataFile.print(",");
 
       // Log UV sensor data
