@@ -18,7 +18,7 @@
 
 ////////////////////////////////////////////////////////////
 //////////////////////////////   Analog Pins
-//////////////////////////////////////////////////////////// 
+////////////////////////////////////////////////////////////
 
 // GUVA-S12SD
 const int guva_s12sd_pin = A1;
@@ -36,20 +36,19 @@ const int mics_4514_co_pin = A3;
 // SD card
 const int chipSelect = 53;
 
-// Time variables
-unsigned long prevPPSTime = 0;
 
 
 ////////////////////////////////////////////////////////////
-//////////////////////////////   SensorData Class 
-////////////////////////////////////////////////////////////  
+//////////////////////////////   SensorData Class
+////////////////////////////////////////////////////////////
 //Enclapsulates instances of various sensors to reduce SRAM usage
 
 class SensorData {
 
 public:
-  
-  SensorData() : uvSensor(Adafruit_LTR390()), rgbSensor(Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_614MS, TCS34725_GAIN_1X)), bnoSensor(Adafruit_BNO055(55)),aht20Sensor1(AHT20()) {}
+
+  SensorData()
+    : uvSensor(Adafruit_LTR390()), rgbSensor(Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_614MS, TCS34725_GAIN_1X)), bnoSensor(Adafruit_BNO055(55)), aht20Sensor1(AHT20()) {}
 
   Adafruit_LTR390 uvSensor;
   Adafruit_TCS34725 rgbSensor;
@@ -57,30 +56,44 @@ public:
   AHT20 aht20Sensor1;
   TinyGPSPlus gps;
   File dataFile;
+  //Analog1-4
+  UV1 = analogRead(A0);
+  UV2 = analogRead(A1);
+  UV3 = analogRead(A2);
+  UV4 = analogRead(A3);
+  //bmp280
+
   unsigned long elapsed;
- 
+
+
 
 
   void writeHeader() {
     boolean isWritten = false;
-    while(!isWritten){
+    while (!isWritten) {
       // Create the file on the SD card if it doesn't exist
       dataFile = SD.open("data.csv", FILE_WRITE);
       if (dataFile) {
         dataFile.println("HH:MM:SS,ms,UTCTime,Altitude,lat,long,km/h,heading_in_degrees,number_of_sats_connected,UV_value,Red_level,Green_level,Blue_level,temp_sensor1,humidity_sensor1,NO2,CO,GravityZ,Magx,Magy,BMPAltitude,BMPTemp,BMPPressure,Red,Green,Blue,IR,UV1 DFrobot,UV2,AdafruitUV");
-        dataFile.flush(); // Save changes to the file
+        dataFile.flush();  // Save changes to the file
         isWritten = true;
       } else {
         Serial.println("Error opening data.csv for writing header");
         SD.open("data.csv", FILE_WRITE);
       }
     }
-    
-    
- 
-}
+  }
 
   void logData() {
+
+    while (Serial3.available() > 0) {
+      gps.encode(Serial3.read());
+      if (gps.location.isValid()>0){
+        Serial.print("Latitude ");
+        Serial.println(gps.location.lat());
+      }
+      
+    }
     // Open the SD card
     dataFile = SD.open("data.csv", FILE_WRITE);
 
@@ -93,7 +106,7 @@ public:
       //Log elapsed time in ms
       elapsed = millis();
       dataFile.print(elapsed);
-      dataFile.print(",")
+      dataFile.print(",");
       // Log time from GPS
       dataFile.print(gps.time.value());
       dataFile.print(",");
@@ -113,9 +126,8 @@ public:
       dataFile.print(",");
 
       // Log UV sensor data
-      float uv = uvSensor.readUVS();
-
-      dataFile.print(uv);
+      
+      //dataFile.print(uv);
       dataFile.print(",");
 
       // Log RGB color sensor data
@@ -132,15 +144,17 @@ public:
       int mics_4514_no2_reading = analogRead(mics_4514_no2_pin);
       int mics_4514_co_reading = analogRead(mics_4514_co_pin);
 
-      
-      
+
+
       // Get the new temperature and humidity value
       dataFile.print(aht20Sensor1.getTemperature());
       dataFile.print(aht20Sensor1.getHumidity());
 
+
+
       dataFile.print(mics_4514_no2_reading);
       dataFile.print(",");
-      dataFile.println(mics_4514_co_reading);
+      dataFile.print(mics_4514_co_reading);
 
       // End the line
       dataFile.println();
@@ -153,6 +167,5 @@ public:
       Serial.println("Error opening data.csv");
     }
   }
-  
 };
-#endif // SENSORDATA_H
+#endif  // SENSORDATA_H

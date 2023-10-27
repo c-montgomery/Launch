@@ -30,32 +30,25 @@ SensorData sensorData;
 
 
 //////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////FUNCTIONS
-/////////////////////////////////////////////////////////////////////////////
-
-void PPS_ISR() {
-  ppsFlag = true;
-}
-
-
-
-//////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////SETUP FUNCTIONS             
 //////////////////////////////////////////////////////////////////////////////
 
 void setup() {
   pinMode(chipSelect, OUTPUT);
+  pinMode(A0, OUTPUT);
+  pinMode(A1, OUTPUT);
+  pinMode(A2, OUTPUT);
+  pinMode(A3, OUTPUT);
   digitalWrite(chipSelect, HIGH);
   Serial.begin(115200);
+  Serial3.begin(9600);
   Wire.begin();
 
 
   if (!SD.begin(chipSelect)) {
     Serial.println("Card failed, or not present");
     
-    while(1);
-   
-    return;
+    
   }
   Serial.println("Card initialized.");
    sensorData.writeHeader();
@@ -75,7 +68,7 @@ void setup() {
     Serial.println("Failed to find Temp sensor 1");
   }
 
-  attachInterrupt(digitalPinToInterrupt(PPS_PIN), PPS_ISR, RISING);
+  //attachInterrupt(digitalPinToInterrupt(PPS_PIN), PPS_ISR, RISING);
 }
 //////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////LOOPS GON' LOOP             
@@ -86,8 +79,3 @@ void loop() {
   // Your loop code here
   sensorData.logData();
 }
-
-
-
-
-
