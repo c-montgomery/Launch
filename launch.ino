@@ -1,5 +1,5 @@
 
-#include "SensorData.h"
+#include "Sensor.h"
 
 
 
@@ -12,7 +12,7 @@
 volatile bool ppsFlag = false;
 
 //Create
-SensorData sensorData;
+Sensor sensor;
 
 //////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////SETUP FUNCTIONS             
@@ -36,20 +36,20 @@ void setup() {
     
   }
   Serial.println("Card initialized.");
-   sensorData.writeHeader();
+   sensor.writeHeader();
 
-  if (!sensorData.uvSensor.begin(&Wire)) {
+  if (!sensor.uvSensor.begin(&Wire)) {
     Serial.println("Failed to find LTR-390 sensor!");
   }
 
-  if (!sensorData.rgbSensor.begin()) {
+  if (!sensor.rgbSensor.begin()) {
     Serial.println("Failed to find TCS34725 sensor!");
   }
 
-  if (!sensorData.bnoSensor.begin()) {
+  if (!sensor.bnoSensor.begin()) {
     Serial.println("Failed to find BNO055 sensor!");
   }
-  if (!sensorData.aht20Sensor1.begin()){
+  if (!sensor.aht20Sensor1.begin()){
     Serial.println("Failed to find Temp sensor 1");
   }
 
@@ -62,5 +62,5 @@ void setup() {
 void loop() {
   unsigned long currentMillis = millis();
   // Your loop code here
-  sensorData.logData();
+  sensor.logData();
 }

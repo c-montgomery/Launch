@@ -40,15 +40,15 @@ const int chipSelect = 53;
 
 
 ////////////////////////////////////////////////////////////
-//////////////////////////////   SensorData Class
+//////////////////////////////   Sensor Class
 ////////////////////////////////////////////////////////////
 //Enclapsulates instances of various sensors to reduce SRAM usage
 
-class SensorData {
+class Sensor {
 
 public:
 
-  SensorData()
+  Sensor()
     : uvSensor(Adafruit_LTR390()), rgbSensor(Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_614MS, TCS34725_GAIN_1X)), bnoSensor(Adafruit_BNO055(55)), aht20Sensor1(AHT20()) {}
 
   Adafruit_LTR390 uvSensor;
@@ -58,10 +58,10 @@ public:
   TinyGPSPlus gps;
   File dataFile;
   //Analog1-4
-  UV1 = analogRead(A0);
-  UV2 = analogRead(A1);
-  UV3 = analogRead(A2);
-  UV4 = analogRead(A3);
+  int UV1 = analogRead(A0);
+  int UV2 = analogRead(A1);
+  int UV3 = analogRead(A2);
+  int UV4 = analogRead(A3);
   //bmp280
 
   unsigned long elapsed;
@@ -69,13 +69,14 @@ public:
 
 
 
+//////////////
   void writeHeader() {
     boolean isWritten = false;
     while (!isWritten) {
       // Create the file on the SD card if it doesn't exist
       dataFile = SD.open("data.csv", FILE_WRITE);
       if (dataFile) {
-        dataFile.println("HH:MM:SS,ms,UTCTime,Altitude,lat,long,km/h,heading_in_degrees,number_of_sats_connected,UV_value,Red_level,Green_level,Blue_level,temp_sensor1,humidity_sensor1,NO2,CO,GravityZ,Magx,Magy,BMPAltitude,BMPTemp,BMPPressure,Red,Green,Blue,IR,UV1 DFrobot,UV2,AdafruitUV");
+        dataFile.println(" ,elapsed(ms),UTCTime,Altitude,lat,long,km/h,heading_in_degrees,UV_value1,UV_value2, UV_value3, UV_value4, Red_level,Green_level,Blue_level,temp_sensor1,humidity_sensor1");
         dataFile.flush();  // Save changes to the file
         isWritten = true;
       } else {
@@ -86,7 +87,7 @@ public:
   }
 
   void logData() {
-
+    
     while (Serial3.available() > 0) {
       gps.encode(Serial3.read());
       if (gps.location.isValid()>0){
@@ -123,8 +124,7 @@ public:
       dataFile.print(",");
       dataFile.print(gps.course.deg());
       dataFile.print(",");
-      dataFile.print(gps.satellites.value());
-      dataFile.print(",");
+      
 
       // Log UV sensor data
       dataFile.print(UV1);
