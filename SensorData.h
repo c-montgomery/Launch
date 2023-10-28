@@ -21,17 +21,18 @@
 ////////////////////////////////////////////////////////////
 
 // GUVA-S12SD
-const int guva_s12sd_pin = A1;
-
+const int UV1 = A1;
+const int UV2 = A2;
+const int UV3 = A3;
+const int UV4 = A4;
+ 
 // IR sensor
 const int ir_sensor_pin = A4;
 
 // MICS-2714
 const int mics_2714_pin = A0;
 
-// MICS-4514
-const int mics_4514_no2_pin = A2;
-const int mics_4514_co_pin = A3;
+
 
 // SD card
 const int chipSelect = 53;
@@ -126,9 +127,15 @@ public:
       dataFile.print(",");
 
       // Log UV sensor data
-      
-      //dataFile.print(uv);
+      dataFile.print(UV1);
       dataFile.print(",");
+      dataFile.print(UV2);
+      dataFile.print(",");
+      dataFile.print(UV3);
+      dataFile.print(",");
+      dataFile.print(UV4);
+      dataFile.print(",");
+      
 
       // Log RGB color sensor data
       uint16_t r, g, b, c;
@@ -140,21 +147,12 @@ public:
       dataFile.print(b);
       dataFile.print(",");
 
-      // Log MICS-4514 data
-      int mics_4514_no2_reading = analogRead(mics_4514_no2_pin);
-      int mics_4514_co_reading = analogRead(mics_4514_co_pin);
-
 
 
       // Get the new temperature and humidity value
       dataFile.print(aht20Sensor1.getTemperature());
       dataFile.print(aht20Sensor1.getHumidity());
 
-
-
-      dataFile.print(mics_4514_no2_reading);
-      dataFile.print(",");
-      dataFile.print(mics_4514_co_reading);
 
       // End the line
       dataFile.println();

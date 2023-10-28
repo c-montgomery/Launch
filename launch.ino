@@ -11,14 +11,10 @@
 #define PPS_PIN 19
 volatile bool ppsFlag = false;
 
-//SD card header count and header fields
-const uint8_t ANALOG_COUNT = 43;
-const char* dataPoints[ANALOG_COUNT] = {
-  "ms", "UTCTime", "Altitude", "lat", "long", 
-  "Altitude", "BNOonboardTemp", "temperatureOutside", "OrientX", "OrientY", "OrientZ", 
-  "AccelX", "AccelY", "AccelZ", "GravityX", "GravityY", "GravityZ", "Magx", "Magy", 
-  "BMPAltitude", "BMPTemp", "BMPPressure", "BMETemp", "BMEPressure", "BMEHumidity", 
-  "BMEGas", "Red", "Green", "Blue", "IR", "UV", "Pressure", "02"
+//SD card header fields
+const char* dataPoints[17] = {
+  "ms", "UTCTime", "Altitude", "lat", "long", "km/h", "heading", "UV1", "UV2","UV3", "UV4",
+   "Red", "Green", "Blue", "BMPAltitude", "BMPTemp", "BMPPressure"
 };
 
 
