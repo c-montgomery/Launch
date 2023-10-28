@@ -11,19 +11,8 @@
 #define PPS_PIN 19
 volatile bool ppsFlag = false;
 
-//SD card header fields
-const char* dataPoints[17] = {
-  "ms", "UTCTime", "Altitude", "lat", "long", "km/h", "heading", "UV1", "UV2","UV3", "UV4",
-   "Red", "Green", "Blue", "BMPAltitude", "BMPTemp", "BMPPressure"
-};
-
-
-// Define a SensorData instance to encapsulate sensor objects
-// Why? Global vars are stored on SRAM in arduino. SRAM is limited. 
-//One SensorData object vs X separate sensor instances means less wasted SRAM
+//Create
 SensorData sensorData;
-
-
 
 //////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////SETUP FUNCTIONS             
@@ -31,10 +20,10 @@ SensorData sensorData;
 
 void setup() {
   pinMode(chipSelect, OUTPUT);
-  pinMode(A0, OUTPUT);
-  pinMode(A1, OUTPUT);
-  pinMode(A2, OUTPUT);
-  pinMode(A3, OUTPUT);
+  pinMode(A0, INPUT);
+  pinMode(A1, INPUT);
+  pinMode(A2, INPUT);
+  pinMode(A3, INPUT);
   digitalWrite(chipSelect, HIGH);
   Serial.begin(115200);
   Serial3.begin(9600);
