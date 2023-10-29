@@ -1,4 +1,3 @@
-#include <Adafruit_BNO055.h>
 
 #ifndef SENSORDATA_H
 #define SENSORDATA_H
@@ -14,8 +13,6 @@
 #include <SPI.h>
 
 
-
-
 ////////////////////////////////////////////////////////////
 //////////////////////////////   Analog Pins
 ////////////////////////////////////////////////////////////
@@ -25,18 +22,9 @@ const int UV1 = A1;
 const int UV2 = A2;
 const int UV3 = A3;
 const int UV4 = A4;
- 
-// IR sensor
-const int ir_sensor_pin = A4;
-
-// MICS-2714
-const int mics_2714_pin = A0;
-
-
 
 // SD card
 const int chipSelect = 53;
-
 
 
 ////////////////////////////////////////////////////////////
@@ -58,25 +46,19 @@ public:
   TinyGPSPlus gps;
   File dataFile;
   //Analog1-4
-  int UV1 = analogRead(A0);
-  int UV2 = analogRead(A1);
-  int UV3 = analogRead(A2);
-  int UV4 = analogRead(A3);
+  int UV1, UV2, UV3, UV4; 
   //bmp280
 
   unsigned long elapsed;
 
 
-
-
-//////////////
   void writeHeader() {
     boolean isWritten = false;
     while (!isWritten) {
       // Create the file on the SD card if it doesn't exist
       dataFile = SD.open("data.csv", FILE_WRITE);
       if (dataFile) {
-        dataFile.println(" ,elapsed(ms),UTCTime,Altitude,lat,long,km/h,heading_in_degrees,UV_value1,UV_value2, UV_value3, UV_value4, Red_level,Green_level,Blue_level,temp_sensor1,humidity_sensor1");
+        dataFile.println(" "" ,elapsed(ms),UTCTime,Altitude,lat,long,km/h,heading_in_degrees, "" ,UV_value1,UV_value2, UV_value3, UV_value4, Red_level,Green_level,Blue_level,temp_sensor1,humidity_sensor1");
         dataFile.flush();  // Save changes to the file
         isWritten = true;
       } else {
@@ -85,6 +67,7 @@ public:
       }
     }
   }
+  
 
   void logData() {
     
@@ -125,7 +108,11 @@ public:
       dataFile.print(gps.course.deg());
       dataFile.print(",");
       
-
+      //update UV values
+      UV1 = analogRead(A0);
+      UV2 = analogRead(A1);
+      UV3 = analogRead(A2);
+      UV4 = analogRead(A3);
       // Log UV sensor data
       dataFile.print(UV1);
       dataFile.print(",");
