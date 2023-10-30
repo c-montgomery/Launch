@@ -74,8 +74,7 @@ public:
     while (Serial3.available() > 0) {
       gps.encode(Serial3.read());
       if (gps.location.isValid()>0){
-        Serial.print("Latitude ");
-        Serial.println(gps.location.lat());
+        Serial.println("FIX");
       }
       
     }
@@ -96,6 +95,23 @@ public:
       dataFile.print(gps.time.value());
       dataFile.print(",");
 
+      int convertedHr = gps.time.hour()+5;
+      if (convertedHr > 24){
+        convertedHr -= 24;
+      }
+      int convertedSecond = gps.time.second();
+      if (convertedSecond <10){
+        char array[2];
+        convertedSecond = snprintf(array, 2, "%05d", convertedSecond);
+      }
+
+      String currentTime = String(convertedHr)+ ":" + String(gps.time.minute() + ":" + String(convertedSecond));
+      Serial.println(gps.time.value());
+      Serial.println("<Gpstime^^");
+      Serial.print("Hour:  ");
+        Serial.print(gps.time.hour()+17);
+        Serial.print(gps.time.minute());
+        Serial.print(gps.time.second());
       // Log GPS data
       dataFile.print(gps.altitude.meters());
       dataFile.print(",");

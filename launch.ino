@@ -6,8 +6,6 @@
 //////////////////////////////   Object declarations and constants
 ////////////////////////////////////////////////////////////  
 
-#define PPS_PIN 19
-volatile bool ppsFlag = false;
 
 //Create
 Sensor sensor;
