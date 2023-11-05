@@ -58,7 +58,7 @@ public:
       // Create the file on the SD card if it doesn't exist
       dataFile = SD.open("data.csv", FILE_WRITE);
       if (dataFile) {
-        dataFile.println(" "" ,elapsed(ms),UTCTime,Altitude,lat,long,km/h,heading_in_degrees, "" ,UV_value1,UV_value2, UV_value3, UV_value4, Red_level,Green_level,Blue_level,temp_sensor1,humidity_sensor1");
+        dataFile.println(" "" ,elapsed(ms),UTCTime,Altitude,lat,long,km/h,heading_in_degrees,UV_value1,UV_value2, UV_value3, UV_value4, Red_level,Green_level,Blue_level,temp_sensor1,humidity_sensor1");
         dataFile.flush();  // Save changes to the file
         isWritten = true;
       } else {
