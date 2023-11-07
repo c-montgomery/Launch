@@ -18,10 +18,10 @@
 ////////////////////////////////////////////////////////////
 
 // GUVA-S12SD
-const int UV1 = A1;
+const int UV1 = A0;
 const int UV2 = A2;
-const int UV3 = A3;
-const int UV4 = A4;
+const int UV3 = A4;
+const int UV4 = A6;
 
 // SD card
 const int chipSelect = 53;
@@ -37,7 +37,7 @@ class Sensor {
 public:
 
   Sensor()
-    : uvSensor(Adafruit_LTR390()), rgbSensor(Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_614MS, TCS34725_GAIN_1X)), bnoSensor(Adafruit_BNO055(55)), aht20Sensor1(AHT20()) {}
+    : uvSensor(Adafruit_LTR390()), rgbSensor(Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_154MS, TCS34725_GAIN_1X)), bnoSensor(Adafruit_BNO055(55)), aht20Sensor1(AHT20()) {}
 
   Adafruit_LTR390 uvSensor;
   Adafruit_TCS34725 rgbSensor;
@@ -53,6 +53,7 @@ public:
 
 
   void writeHeader() {
+    Serial.println("running writeHeader()");
     boolean isWritten = false;
     while (!isWritten) {
       // Create the file on the SD card if it doesn't exist
@@ -66,11 +67,11 @@ public:
         SD.open("data.csv", FILE_WRITE);
       }
     }
-  }
+  }M
   
 
   void logData() {
-    
+    Serial.println("");
     while (Serial3.available() > 0) {
       gps.encode(Serial3.read());
       if (gps.location.isValid()>0){
@@ -126,9 +127,18 @@ public:
       
       //update UV values
       UV1 = analogRead(A0);
-      UV2 = analogRead(A1);
-      UV3 = analogRead(A2);
-      UV4 = analogRead(A3);
+      UV2 = analogRead(A2);
+      UV3 = analogRead(A4);
+      UV4 = analogRead(A6);
+      Serial.println("UV1 - A0");
+      Serial.println(UV1);
+      Serial.println("UV2 - A2");
+      Serial.println(UV2);
+      Serial.println("UV2 - A4");
+      Serial.println(UV3);
+      Serial.println("UV4 - A6");
+      Serial.println(UV4);
+
       // Log UV sensor data
       dataFile.print(UV1);
       dataFile.print(",");
@@ -151,10 +161,17 @@ public:
       dataFile.print(",");
 
 
+      float temp = aht20Sensor1.getTemperature();
 
+      float humidity = aht20Sensor1.getHumidity();
       // Get the new temperature and humidity value
       dataFile.print(aht20Sensor1.getTemperature());
       dataFile.print(aht20Sensor1.getHumidity());
+
+      Serial.println("Temp");
+      Serial.println(temp);
+      Serial.println("humidity");
+      Serial.println(humidity);
 
 
       // End the line
