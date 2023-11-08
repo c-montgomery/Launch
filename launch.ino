@@ -7,7 +7,7 @@
 ////////////////////////////////////////////////////////////  
 
 
-//Create
+//Create sensor object
 Sensor sensor;
 
 //////////////////////////////////////////////////////////////////////////////
@@ -32,15 +32,21 @@ void setup() {
 
   Serial.println("Card initialized.");
   sensor.writeHeader();
-
  
-  if (!sensor.rgbSensor.begin()) {
+  if (!sensor.rgb.begin()) {
+    Serial.println("inrgbsensor");
     Serial.println("Failed to find TCS34725 sensor!");
   }
 
   if (!sensor.aht20Sensor1.begin()){
     Serial.println("Failed to find Temp sensor 1");
   }
+  Serial.println("started temp");
+
+  if (!sensor.bmp280.begin()){
+    Serial.println("Failed to find pressure sensor!");
+  }
+  Serial.println("started pressure");
 
 }
 //////////////////////////////////////////////////////////////////////////////

@@ -7,6 +7,7 @@
 #include <Adafruit_TCS34725.h>
 #include <Adafruit_BNO055.h>
 #include <Adafruit_LTR390.h>
+#include <BMP280.h>
 #include <TinyGPS++.h>
 #include <AHT20.h>
 #include <SD.h>
@@ -17,17 +18,11 @@
 //////////////////////////////   Analog Pins
 ////////////////////////////////////////////////////////////
 
-// GUVA-S12SD
-const int UV1 = A0;
-const int UV2 = A2;
-const int UV3 = A4;
-const int UV4 = A6;
+
 
 // SD card
 const int chipSelect = 53;
 
-
-////////////////////////////////////////////////////////////
 //////////////////////////////   Sensor Class
 ////////////////////////////////////////////////////////////
 //Enclapsulates instances of various sensors to reduce SRAM usage
@@ -37,17 +32,21 @@ class Sensor {
 public:
 
   Sensor()
-    : uvSensor(Adafruit_LTR390()), rgbSensor(Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_154MS, TCS34725_GAIN_1X)), bnoSensor(Adafruit_BNO055(55)), aht20Sensor1(AHT20()) {}
+    : uvSensor(Adafruit_LTR390()), rgb(Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_101MS, TCS34725_GAIN_1X)), aht20Sensor1(AHT20()), bmp280(BMP280()) {}
 
+////////////////////////////////////////////////////////////
   Adafruit_LTR390 uvSensor;
-  Adafruit_TCS34725 rgbSensor;
-  Adafruit_BNO055 bnoSensor;
+  Adafruit_TCS34725 rgb;
+  BMP280 bmp280;
   AHT20 aht20Sensor1;
   TinyGPSPlus gps;
   File dataFile;
+  // rgb vars
+  uint16_t r, g, b, c;
+
   //Analog1-4
   int UV1, UV2, UV3, UV4; 
-  //bmp280
+  
 
   unsigned long elapsed;
 
@@ -58,24 +57,27 @@ public:
     while (!isWritten) {
       // Create the file on the SD card if it doesn't exist
       dataFile = SD.open("data.csv", FILE_WRITE);
+      Serial.println("ran partial1 writeHeader()");
       if (dataFile) {
-        dataFile.println(" "" ,elapsed(ms),UTCTime,Altitude,lat,long,km/h,heading_in_degrees,UV_value1,UV_value2, UV_value3, UV_value4, Red_level,Green_level,Blue_level,temp_sensor1,humidity_sensor1");
+        dataFile.println(" "" ,elapsed(ms),UTCTime,Altitude,lat,long,km/h,heading_in_degrees,UV_value1,UV_value2, UV_value3, UV_value4, Red_level,Green_level,Blue_level,temp_sensor1,humidity_sensor1, pressure_bmp280, temp_bmp280");
         dataFile.flush();  // Save changes to the file
+        Serial.println("HEADER PRINTED");
         isWritten = true;
       } else {
         Serial.println("Error opening data.csv for writing header");
         SD.open("data.csv", FILE_WRITE);
       }
     }
-  }M
+    
+  }
   
 
   void logData() {
-    Serial.println("");
+    Serial.println("logDATA starts");
     while (Serial3.available() > 0) {
       gps.encode(Serial3.read());
       if (gps.location.isValid()>0){
-        Serial.println("FIX");
+        
       }
       
     }
@@ -107,12 +109,7 @@ public:
       }
 
       String currentTime = String(convertedHr)+ ":" + String(gps.time.minute() + ":" + String(convertedSecond));
-      Serial.println(gps.time.value());
-      Serial.println("<Gpstime^^");
-      Serial.print("Hour:  ");
-        Serial.print(gps.time.hour()+17);
-        Serial.print(gps.time.minute());
-        Serial.print(gps.time.second());
+     
       // Log GPS data
       dataFile.print(gps.altitude.meters());
       dataFile.print(",");
@@ -138,7 +135,7 @@ public:
       Serial.println(UV3);
       Serial.println("UV4 - A6");
       Serial.println(UV4);
-
+      
       // Log UV sensor data
       dataFile.print(UV1);
       dataFile.print(",");
@@ -148,30 +145,32 @@ public:
       dataFile.print(",");
       dataFile.print(UV4);
       dataFile.print(",");
-      
-
-      // Log RGB color sensor data
-      uint16_t r, g, b, c;
-      rgbSensor.getRawData(&r, &g, &b, &c);
+     
+      rgb.getRawData(&r, &g, &b, &c);
+   
       dataFile.print(r);
       dataFile.print(",");
       dataFile.print(g);
       dataFile.print(",");
       dataFile.print(b);
       dataFile.print(",");
-
-
+      //update temp/humidity
       float temp = aht20Sensor1.getTemperature();
-
       float humidity = aht20Sensor1.getHumidity();
-      // Get the new temperature and humidity value
-      dataFile.print(aht20Sensor1.getTemperature());
-      dataFile.print(aht20Sensor1.getHumidity());
 
-      Serial.println("Temp");
-      Serial.println(temp);
-      Serial.println("humidity");
-      Serial.println(humidity);
+
+      //update pressure/temp from bmp280
+      uint32_t pressure = bmp280.getPressure();
+      float bmp280_temperature = bmp280.getTemperature();
+      dataFile.print(temp);
+      dataFile.print(",");
+      dataFile.print(humidity);
+      dataFile.print(",");
+      dataFile.print(pressure);
+      dataFile.print(",");
+      dataFile.print(bmp280_temperature);
+      dataFile.print(",");
+
 
 
       // End the line
